@@ -1,0 +1,118 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import sklearn
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+df = pd.read_csv("train.csv")
+
+#preparing encoding ordinal columns
+df["Gender"].replace("Male",0, inplace=True)
+df["Gender"].replace("Female",1, inplace=True)
+
+df["Married"].replace("Yes",0, inplace=True)
+df["Married"].replace("No",1, inplace=True)
+
+df["Education"].replace("Graduate",0, inplace=True)
+df["Education"].replace("Not Graduate",1, inplace=True)
+
+df["Self_Employed"].replace("Yes",0, inplace=True)
+df["Self_Employed"].replace("No",1, inplace=True)
+
+df["Property_Area"].replace("Urban",0, inplace=True)
+df["Property_Area"].replace("Semiurban",1, inplace=True)
+df["Property_Area"].replace("Rural",2, inplace=True)
+
+# df["Loan_Status"].replace("Y",0, inplace=True)
+# df["Loan_Status"].replace("N",1, inplace=True)
+
+df["Dependents"].replace("3+",3, inplace=True)
+
+#imputing
+df["Gender"].fillna(2, inplace=True)
+df["Married"].fillna(2, inplace=True)
+df["Self_Employed"].fillna(2, inplace=True)
+df["Dependents"].fillna(4, inplace=True)
+
+medianLoanAmount = df["LoanAmount"].median()
+df["LoanAmount"].fillna(medianLoanAmount, inplace=True)
+medianLoan_Amount_Term = df["Loan_Amount_Term"].median()
+df["Loan_Amount_Term"].fillna(medianLoan_Amount_Term, inplace=True)
+medianCredit_History = df["Credit_History"].median()
+df["Credit_History"].fillna(medianCredit_History, inplace=True)
+
+#print(df.isnull().sum())
+#print(df.describe())
+#print(df["LoanAmount"].describe())
+
+#Plotting
+fig, ax = plt.subplots()
+ax.scatter(df["LoanAmount"], df["Loan_Amount_Term"], s = 30, color = "red", alpha=0.75)
+ax.set_xlabel("Loan Amount")
+ax.set_ylabel("Loan Amount Terms")
+ax.set_title(" SCATTER PLOT:Distribution of Customers Loan Amounts by their Loan  Amount Terms")
+plt.show()
+
+#Histogram
+fig, ax = plt.subplots()
+ax.hist(df['LoanAmount'], color='#539caf', bins=30)
+ax.set_title("Distribution of Customers Loan Amount")
+ax.set_xlabel("Loan Amount")
+ax.set_ylabel("Frequency")
+plt.show()
+
+#density plot
+fig,  ax = plt.subplots()
+ax.plot(df['LoanAmount'], color='#539caf', lw=2)
+ax.set_ylabel("Frequency")
+ax.set_xlabel("Loan Amount")
+ax.set_title("Loan Amount Distribution")
+ax.legend(loc='best')
+plt.show()
+
+#stacked bar, gender vs education vs their loan amount
+fig,  ax = plt.subplots()
+df.groupby(['Gender', 'Education'])['LoanAmount'].mean().unstack().plot(kind='bar',
+stacked=False)
+ax.set_ylabel("Loan Amount")
+ax.set_xlabel("Gender")
+ax.set_title("Loan Amount Distribution by Gender and Education")
+plt.show()
+
+# #Classification and predicting
+# subset = df[['Loan_ID','Gender','Married','Dependents','Education','Self_Employed','ApplicantIncome','CoapplicantIncome','LoanAmount',
+#              'Loan_Amount_Term','Credit_History','Property_Area','Loan_Status']]
+#df["Property_Area"].replace("Semiurban",1, inplace=True)
+
+array= df.values
+X = array[:,1:12]  # upto to 11
+Y = array[:, 12]
+print(Y)
+#
+# #split to train, test
+from sklearn import model_selection
+X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X,Y, test_size=0.30, random_state=10)
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.svm import SVC
+
+model = LinearDiscriminantAnalysis()
+model.fit(X_train, Y_train)
+
+predictions = model.predict(X_test)
+print(predictions)
+
+print(accuracy_score(Y_test, predictions))
+print(classification_report(Y_test, predictions))
+print(confusion_matrix(Y_test, predictions))
+#
+# #new observation
+newobservation = model.predict([[0,0,1,0,0,3000,2000,200,360,1,1]])
+print(newobservation)
+
+
+
+
